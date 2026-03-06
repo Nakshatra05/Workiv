@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --page-bg: #f4f1ed;
+  --surface: #fffdf8;
+  --ink: #1d1c1a;
+  --muted-ink: #4c4a45;
+  --accent: #ffd166;
+  --accent-dark: #ba8b10;
+  --shadow: 8px 8px 0 rgba(0, 0, 0, 0.18);
+  --radius: 24px;
+}
+
+body {
+  color: var(--ink);
+  background: var(--page-bg);
+  font-family: var(--font-geist-sans), "Inter", "Helvetica Neue", Arial,
+    system-ui;
+}
+
+@layer components {
+  .neo-card {
+    border: 2px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .neo-pill {
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    background: #fffaf0;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .neo-button {
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 0.85rem 1.9rem;
+    font-weight: 600;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  .neo-button:active {
+    transform: translate(3px, 3px);
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .faint-grid {
+    background-image: linear-gradient(
+        rgba(30, 28, 26, 0.07) 1px,
+        transparent 0
+      ),
+      linear-gradient(90deg, rgba(30, 28, 26, 0.07) 1px, transparent 0);
+    background-size: 48px 48px;
+  }
+}
