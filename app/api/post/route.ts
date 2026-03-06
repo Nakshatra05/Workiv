@@ -144,6 +144,33 @@ export async function POST(request: NextRequest) {
 
     // Create post entity
     const timestamp = Date.now();
+    
+    // Parse job data from caption (JSON) if available
+    let expirationDays = 30; // Default
+    let jobTitle = body.caption.trim();
+    let jobDiscipline = "other";
+    let jobLocationType = "onsite";
+    
+    try {
+      const jobData = JSON.parse(body.caption);
+      if (jobData.expiration_days) {
+        expirationDays = Math.min(Math.max(jobData.expiration_days, 30), 90); // 30-90 days
+      }
+      if (jobData.title) {
+        jobTitle = jobData.title;
+      }
+      if (jobData.discipline) {
+        jobDiscipline = jobData.discipline;
+      }
+      if (jobData.location_type) {
+        jobLocationType = jobData.location_type;
+      }
+    } catch {
+      // Caption is not JSON, use as-is
+    }
+    
+    const expiresAt = timestamp + (expirationDays * 24 * 60 * 60 * 1000);
+    
     const postPayload = {
       owner: body.owner,
       caption: body.caption.trim(),
@@ -152,6 +179,10 @@ export async function POST(request: NextRequest) {
       image_entity_key: imageResult.entityKey,
       likes: [],
       comments: [],
+      flags: [],
+      status: "active",
+      expires_at: expiresAt,
+      expiration_days: expirationDays,
       created_at: timestamp,
       updated_at: timestamp,
       version: 1,
@@ -164,8 +195,11 @@ export async function POST(request: NextRequest) {
         { key: "type", value: "post" },
         { key: "owner", value: body.owner },
         { key: "media_id", value: mediaId },
+        { key: "discipline", value: jobDiscipline },
+        { key: "location_type", value: jobLocationType },
+        { key: "status", value: "active" },
       ],
-      expiresIn: ExpirationTime.fromDays(30), // Posts live longer than images
+      expiresIn: ExpirationTime.fromDays(expirationDays),
     });
     await client.waitForTransactionReceipt({ hash: postResult.txHash });
 

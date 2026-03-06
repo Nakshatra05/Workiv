@@ -2,10 +2,6 @@
 
 Workiv is a decentralized job board platform built on Arkiv, enabling users to post jobs, find opportunities, and build professional profiles in a censorship-resistant environment. Employers can post job listings with company logos and descriptions, job seekers can browse opportunities, manage professional profiles, and apply to positions, all powered by Arkiv.
 
-### Architecture and user flow
-- https://app.eraser.io/workspace/KqNZhASWumte7R09hhSh?origin=share
-
-
 ## What it does?
 
 ### Core Functionality

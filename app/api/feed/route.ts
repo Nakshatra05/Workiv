@@ -14,15 +14,23 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
+  const owner = searchParams.get("owner"); // Filter by owner for My Listings
+  const status = searchParams.get("status"); // Filter by status (active, filled, expired)
+  const includeExpired = searchParams.get("include_expired") === "true";
 
   try {
     // Query all posts
-    const postsQuery = publicClient
+    let postsQuery = publicClient
       .buildQuery()
       .where(eq("type", "post"))
       .withPayload(true)
       .withAttributes(true)
-      .limit(limit);
+      .limit(limit * 2); // Fetch more to account for filtering
+    
+    // Add owner filter if specified
+    if (owner) {
+      postsQuery = postsQuery.where(eq("owner", owner));
+    }
 
     const queryResult = await postsQuery.fetch();
     const postEntities = queryResult.entities || queryResult;
@@ -71,7 +79,27 @@ export async function GET(request: NextRequest) {
           image: imageData,
         };
 
+        // Check expiration
+        const expiresAt = postData.expires_at || (postData.created_at + 30 * 24 * 60 * 60 * 1000);
+        const isExpired = Date.now() > expiresAt;
+        const postStatus = isExpired ? "expired" : (postData.status || "active");
+
+        // Filter by status if specified
+        if (status && postStatus !== status) {
+          continue;
+        }
+
+        // Skip expired posts unless owner is viewing their own or include_expired is true
+        if (isExpired && !includeExpired && !owner) {
+          continue;
+        }
+
         posts.push(post);
+        
+        // Stop if we have enough posts
+        if (posts.length >= limit) {
+          break;
+        }
       } catch (error) {
         console.error(`Error processing post ${postEntity.key}:`, error);
         // Continue with other posts

@@ -1,3 +1,43 @@
+// Company Profile (one per wallet for employers)
+export interface CompanyProfile {
+  id: string;
+  owner: string; // Wallet address
+  name: string;
+  description: string;
+  industry: string;
+  website?: string;
+  logo?: string;
+  location: string;
+  size: "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+";
+  founded_year?: number;
+  linkedin_url?: string;
+  twitter_url?: string;
+  created_at: number;
+  updated_at: number;
+}
+
+// Job Listing disciplines/categories
+export type JobDiscipline = 
+  | "engineering"
+  | "design"
+  | "product"
+  | "marketing"
+  | "sales"
+  | "operations"
+  | "finance"
+  | "hr"
+  | "legal"
+  | "customer-support"
+  | "data-science"
+  | "devops"
+  | "other";
+
+// Job Listing location types
+export type LocationType = "remote" | "hybrid" | "onsite";
+
+// Job Listing status
+export type JobStatus = "active" | "filled" | "expired" | "draft";
+
 // Job Listing (formerly Post)
 export interface JobListing {
   id: string;
@@ -5,13 +45,23 @@ export interface JobListing {
   title: string;
   description: string;
   company: string;
+  company_id?: string; // Reference to CompanyProfile
   location: string;
+  location_type: LocationType;
   salary_range?: string;
+  salary_min?: number;
+  salary_max?: number;
   job_type: "full-time" | "part-time" | "contract" | "freelance" | "internship";
+  discipline: JobDiscipline;
   remote: boolean;
+  apply_link?: string;
   media_id: string;
   applications: string[];
   saved_by: string[];
+  flags: string[]; // Wallet addresses that flagged this listing
+  status: JobStatus;
+  expires_at: number; // Timestamp when job expires
+  expiration_days: 30 | 60 | 90;
   created_at: number;
   updated_at: number;
   image?: {

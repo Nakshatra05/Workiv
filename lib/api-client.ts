@@ -1,5 +1,5 @@
 // API client utilities for Workiv endpoints
-import { Post } from "@/app/types/api";
+import { Post, CompanyProfile } from "@/app/types/api";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -11,6 +11,7 @@ export type ApiResponse<T> = {
   stories?: T[];
   story?: T;
   profile?: T;
+  company?: CompanyProfile;
   total?: number;
   txHash?: string;
   entityKey?: string;
@@ -302,3 +303,170 @@ export const profileApi = {
   },
 };
 
+// Company API
+export const companyApi = {
+  async createCompany(data: {
+    owner: string;
+    name: string;
+    description: string;
+    industry: string;
+    website?: string;
+    logo?: string;
+    location: string;
+    size: "1-10" | "11-50" | "51-200" | "201-500" | "501-1000" | "1000+";
+    founded_year?: number;
+    linkedin_url?: string;
+    twitter_url?: string;
+  }): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        formData.append(key, String(value));
+      }
+    });
+
+    const response = await fetch("/api/company", {
+      method: "POST",
+      body: formData,
+    });
+
+    return handleResponse(response);
+  },
+
+  async getCompanyByWallet(wallet: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`/api/company?wallet=${wallet}`);
+    return handleResponse(response);
+  },
+
+  async getCompanyById(id: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`/api/company?id=${id}`);
+    return handleResponse(response);
+  },
+
+  async updateCompany(
+    companyId: string,
+    owner: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      industry: string;
+      website: string;
+      logo: string;
+      location: string;
+      size: string;
+      founded_year: number;
+      linkedin_url: string;
+      twitter_url: string;
+    }>
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append("company_id", companyId);
+    formData.append("owner", owner);
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined) {
+        formData.append(key, String(value));
+      }
+    });
+
+    const response = await fetch("/api/company", {
+      method: "PUT",
+      body: formData,
+    });
+
+    return handleResponse(response);
+  },
+};
+
+// Job API (enhanced post API for job-specific features)
+export const jobApi = {
+  async createJob(data: {
+    image: File;
+    owner: string;
+    title: string;
+    description: string;
+    company: string;
+    company_id?: string;
+    location: string;
+    location_type: "remote" | "hybrid" | "onsite";
+    salary_min?: number;
+    salary_max?: number;
+    job_type: "full-time" | "part-time" | "contract" | "freelance" | "internship";
+    discipline: string;
+    apply_link?: string;
+    expiration_days: 30 | 60 | 90;
+  }): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append("image", data.image);
+    formData.append("owner", data.owner);
+    // Create caption as JSON for job data
+    const jobData = {
+      title: data.title,
+      description: data.description,
+      company: data.company,
+      company_id: data.company_id,
+      location: data.location,
+      location_type: data.location_type,
+      salary_min: data.salary_min,
+      salary_max: data.salary_max,
+      job_type: data.job_type,
+      discipline: data.discipline,
+      apply_link: data.apply_link,
+      expiration_days: data.expiration_days,
+    };
+    formData.append("caption", JSON.stringify(jobData));
+
+    const response = await fetch("/api/post", {
+      method: "POST",
+      body: formData,
+    });
+
+    return handleResponse(response);
+  },
+
+  async updateJob(
+    jobId: string,
+    owner: string,
+    data: Partial<{
+      title: string;
+      description: string;
+      location: string;
+      location_type: string;
+      salary_min: number;
+      salary_max: number;
+      job_type: string;
+      discipline: string;
+      apply_link: string;
+      status: "active" | "filled" | "expired" | "draft";
+    }>
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append("post_id", jobId);
+    formData.append("owner", owner);
+    formData.append("caption", JSON.stringify(data));
+
+    const response = await fetch("/api/post", {
+      method: "PUT",
+      body: formData,
+    });
+
+    return handleResponse(response);
+  },
+
+  async flagJob(jobId: string, flagger: string): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append("job_id", jobId);
+    formData.append("flagger", flagger);
+
+    const response = await fetch("/api/post/flag", {
+      method: "POST",
+      body: formData,
+    });
+
+    return handleResponse(response);
+  },
+
+  async getMyListings(owner: string): Promise<ApiResponse<any>> {
+    const response = await fetch(`/api/feed?owner=${owner}`);
+    return handleResponse(response);
+  },
+};
